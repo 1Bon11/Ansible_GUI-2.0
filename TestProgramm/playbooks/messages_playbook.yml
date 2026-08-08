@@ -1,0 +1,91 @@
+---
+- name: Mass distribution of administrative notifications to desktops
+  hosts: message_targets
+  gather_facts: false
+  become: false
+
+  tasks:
+    - name: "========================================================================="
+      ansible.builtin.debug:
+        msg: " ОТПРАВКА СООБЩЕНИЯ НА КОМПЬЮТЕР: {{ inventory_hostname }} "
+
+    - name: ГЕНЕРАЦИЯ И ЗАПУСК ОКНА | Вывод PyQt5 окна с правильным выравниванием текста
+      ansible.builtin.shell: |
+        cat << 'EOF' > /tmp/send_gui_msg.py
+        import sys
+        from PyQt5.QtWidgets import QApplication, QMessageBox, QPushButton, QSpacerItem, QSizePolicy, QLabel
+        from PyQt5.QtCore import QTimer, Qt
+        from PyQt5.QtGui import QFont
+
+        app = QApplication(sys.argv)
+
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Information)
+        msg.setWindowTitle("{{ msg_title }}")
+
+        raw_text = """{{ msg_text }}"""
+
+        # Настраиваем крупный корпоративный шрифт
+        font = QFont("Segoe UI", 13)
+        msg.setFont(font)
+
+        # ЖЕЛЕЗНОЕ ИСПРАВЛЕНИЕ: Обертываем текст в HTML-тег с жестким ограничением ширины.
+        # Это заставит Qt держать текст СЛЕВА рядом с иконкой и принудительно переносить строки вниз!
+        html_text = f'<div style="width: 440px; white-space: pre-wrap; word-wrap: break-word;">{raw_text}</div>'
+        msg.setText(html_text)
+
+        # Фиксируем общую длину (ширину) каркаса окна ровно на 600 пикселей
+        layout = msg.layout()
+        horizontal_spacer = QSpacerItem(600, 0, QSizePolicy.Fixed, QSizePolicy.Expanding)
+        layout.addItem(horizontal_spacer, layout.rowCount(), 0, 1, layout.columnCount())
+
+        # === АДАПТИВНОЕ ДОБАВЛЕНИЕ СТРОК ДЛЯ МИНИМАЛЬНОГО РАЗМЕРА ===
+        # Если текст слишком короткий, дописываем пустые строки вниз, чтобы удержать эталонную высоту окна.
+        # Если текст длинный — он перенесется сам, и окно плавно вырастет строго вниз!
+        lines_count = raw_text.count('\n') + (len(raw_text) // 45)
+        needed_newlines = max(0, 5 - lines_count)
+        if needed_newlines > 0:
+            # В HTML режиме используем безопасные теги <br> вместо \n для пустых строк
+            msg.setText(html_text + ("<br>" * needed_newlines))
+
+        # Полностью блокируем крестик закрытия и верхнее меню ИБ
+        msg.setWindowFlags(msg.windowFlags() | Qt.WindowStaysOnTopHint | Qt.CustomizeWindowHint)
+        msg.setWindowFlags(msg.windowFlags() & ~Qt.WindowCloseButtonHint)
+
+        ok_button = msg.addButton(QMessageBox.Ok)
+
+        # Делаем саму кнопку ОК крупной и солидной
+        ok_button.setMinimumWidth(160)
+        ok_button.setMinimumHeight(38)
+
+        timeout = {{ msg_timeout }}
+
+        if timeout > 0:
+            ok_button.setEnabled(False)
+            ok_button.setText(f"ОК ({timeout} сек.)")
+
+            def update_timer():
+                global timeout
+                timeout -= 1
+                if timeout > 0:
+                    ok_button.setText(f"ОК ({timeout} сек.)")
+                else:
+                    timer.stop()
+                    ok_button.setText("ОК")
+                    ok_button.setEnabled(True)
+
+            timer = QTimer()
+            timer.timeout.connect(update_timer)
+            timer.start(1000)
+
+        msg.show()
+        sys.exit(app.exec_())
+        EOF
+
+        DISPLAY=:0 python3 /tmp/send_gui_msg.py &
+      async: 10
+      poll: 0
+
+    - name: "-------------------------------------------------------------------------"
+      ansible.builtin.debug:
+        msg: " УВЕДОМЛЕНИЕ УСПЕШНО ОТПРАВЛЕНО НА: {{ inventory_hostname }} "

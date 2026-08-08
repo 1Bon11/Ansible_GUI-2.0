@@ -1,0 +1,23 @@
+---
+- name: Удаленный запуск консольных команд админа
+  hosts: cmd_targets
+  serial: 1 # Гарантирует, что сначала полностью выведется первый ПК, затем второй
+  become: yes
+  gather_facts: no
+
+  tasks:
+    # Шаг 1: Печатаем яркую верхнюю рамку для текущего компьютера хоста
+    - name: "========================================================================="
+      ansible.builtin.debug:
+        msg: " НАЧАЛО ЛОГА ДЛЯ КОМПЬЮТЕРА: {{ inventory_hostname }} "
+
+    # Шаг 2: Тихо выполняем кастомную shell-команду
+    - name: Выполнение кастомной shell-команды из панели управления
+      ansible.builtin.shell: "{{ target_custom_command }}"
+      register: cmd_output
+
+    # Шаг 3: Выводим результат в чистом текстовом виде (построчно)
+    - name: РЕЗУЛЬТАТ ВЫПОЛНЕНИЯ КОМАНДЫ
+      ansible.builtin.debug:
+        msg: "{{ cmd_output.stdout_lines }}"
+      when: cmd_output.stdout_lines | length > 0

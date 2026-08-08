@@ -1,0 +1,3 @@
+[package_targets]
+mainpc.domain.test ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+volonter-pc1.domain.test ansible_ssh_common_args='-o StrictHostKeyChecking=no'

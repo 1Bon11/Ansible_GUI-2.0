@@ -1,0 +1,2 @@
+mainpc.domain.test
+volonter-pc1.domain.test

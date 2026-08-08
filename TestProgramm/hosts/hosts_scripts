@@ -1,0 +1,2 @@
+[script_targets]
+volonter-pc1.domain.test ansible_ssh_common_args='-o StrictHostKeyChecking=no'

@@ -1,0 +1,54 @@
+---
+- name: Корпоративные политики Яндекс.Браузера
+  hosts: yandex_targets
+  become: yes
+  gather_facts: no
+
+  tasks:
+    - name: Создание каталога политик
+      ansible.builtin.file:
+        path: "/etc/opt/yandex/browser/policies/managed"
+        state: directory
+        mode: '0755'
+
+    - name: Поиск старых конфигурационных файлов в каталоге managed
+      ansible.builtin.find:
+        paths: "/etc/opt/yandex/browser/policies/managed"
+        file_type: any
+        hidden: yes
+      register: found_old_policies
+
+    - name: Удаление всех старых политик перед записью новой конфигурации
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ found_old_policies.files }}"
+
+    # Шаг 1: Принудительно создаем каталог backgrounds на целевом ПК
+    - name: Гарантировать существование каталога системных фонов
+      ansible.builtin.file:
+        path: "/usr/share/backgrounds"
+        state: directory
+        mode: '0755'
+      when: yandex_local_wallpaper_path | length > 0
+
+    # Шаг 2: Безопасно копируем картинку с ПК админа на целевую машину
+    - name: Копирование фонового изображения в системный каталог фонов ПК пользователя
+      ansible.builtin.copy:
+        src: "{{ yandex_local_wallpaper_path }}"
+        dest: "/usr/share/backgrounds/corporate_wallpaper.jpg"
+        mode: '0644'
+      when: yandex_local_wallpaper_path | length > 0
+
+    # Шаг 3: Записываем чистый плоский JSON-манифест политик (куда зашито правило NewTabPageLocation)
+    - name: Запись файла конфигурации политик Яндекса
+      ansible.builtin.copy:
+        content: "{{ yandex_policy_content }}"
+        dest: "/etc/opt/yandex/browser/policies/managed/yandex_corporate.json"
+        mode: '0644'
+
+    # Шаг 4: Посылаем сигнал HUP для мгновенного применения политик
+    - name: Принудительное обновление политик во всех запущенных браузерах на лету
+      ansible.builtin.shell: "pkill -HUP -f yandex-browser"
+      failed_when: false
+      changed_when: false
