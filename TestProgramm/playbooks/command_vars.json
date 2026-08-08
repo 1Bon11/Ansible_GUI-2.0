@@ -1,5 +1,0 @@
-{
-    "ansible_become_password": "12345678",
-    "target_custom_command": "ip a",
-    "ansible_password": "12345678"
-}

@@ -1,6 +1,0 @@
-{
-    "use_ssh_key": true,
-    "ignore_key_checking": true,
-    "timeout_index": 0,
-    "verbosity_index": 0
-}

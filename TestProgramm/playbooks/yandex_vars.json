@@ -1,5 +1,0 @@
-{
-    "ansible_become_password": "12345678",
-    "yandex_policy_content": "{\n    \"RestoreOnStartup\": 4,\n    \"RestoreOnStartupURLs\": [\n        \"https://gosuslugi.ru\"\n    ],\n    \"TabloPreset\": [\n        {\n            \"title\": \"sed\",\n            \"url\": \"https://sed.mchs.ru\",\n            \"background_color\": \"EC5515\",\n            \"text_color\": \"FFFFFF\"\n        }\n    ]\n}",
-    "yandex_local_wallpaper_path": ""
-}
