@@ -1,0 +1,6 @@
+{
+    "ansible_become_password": "12345678",
+    "custom_script_path": "/home/administrator/Desktops/Desktop1/TestProgramm/Скелеты/Text_File.sh",
+    "custom_deb_path": "",
+    "ansible_password": "12345678"
+}

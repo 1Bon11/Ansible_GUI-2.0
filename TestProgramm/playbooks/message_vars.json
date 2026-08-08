@@ -1,0 +1,6 @@
+{
+    "ansible_become_password": "12345678",
+    "msg_title": "ere",
+    "msg_text": "rere",
+    "msg_timeout": 60
+}

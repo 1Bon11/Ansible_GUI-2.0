@@ -1,0 +1,24 @@
+---
+- name: Автоматическая massовая настройка ПО через GUI администратора
+  hosts: package_targets
+  serial: "{{ dynamic_serial | default(20) }}"
+  become: true
+  gather_facts: false
+
+  tasks:
+    # Шаг 1: Печатаем динамическую верхнюю рамку на базе переменной action_word
+    - name: "========================================================================="
+      ansible.builtin.debug:
+        msg: " НАЧАЛО {{ action_word }} ПО НА КОМПЬЮТЕРЕ: {{ inventory_hostname }} "
+
+    # Шаг 2: Вызываем APT
+    - name: БЛОК УПРАВЛЕНИЯ ПО | Пакетная обработка репозиториев через APT
+      ansible.builtin.apt:
+        name: "{{ target_packages }}"
+        state: "{{ package_state }}"
+        update_cache: "{{ 'yes' if package_state == 'present' else 'no' }}"
+
+    # Шаг 3: Печатаем динамическую нижнюю черту
+    - name: "-------------------------------------------------------------------------"
+      ansible.builtin.debug:
+        msg: " КОНЕЦ {{ action_word }} ПО НА КОМПЬЮТЕРЕ: {{ inventory_hostname }} "

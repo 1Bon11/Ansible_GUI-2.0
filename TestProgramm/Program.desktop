@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Program
+Type=Application
+NoDisplay=false
+Exec=python3 /home/administrator/Desktop/TestProgramm/main.py
+Hidden=false
+Terminal=false
+StartupNotify=false

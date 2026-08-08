@@ -1,0 +1,9 @@
+{
+    "target_packages": [
+        "htop"
+    ],
+    "package_state": "present",
+    "dynamic_serial": 10,
+    "action_word": "УСТАНОВКИ",
+    "ansible_become_password": "12345678"
+}
